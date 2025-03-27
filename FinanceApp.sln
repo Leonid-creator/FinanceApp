@@ -11,6 +11,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FinanceApp.Infrastructure",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FinanceApp.Api", "FinanceApp.Api\FinanceApp.Api.csproj", "{ACA62B76-7056-4E7A-A5D3-FEE91B821413}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FinanceApp.Lib", "FinanceApp.Lib\FinanceApp.Lib.csproj", "{CF275DD2-E167-4010-83DF-7C0215DD7E52}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{ACA62B76-7056-4E7A-A5D3-FEE91B821413}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ACA62B76-7056-4E7A-A5D3-FEE91B821413}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ACA62B76-7056-4E7A-A5D3-FEE91B821413}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CF275DD2-E167-4010-83DF-7C0215DD7E52}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CF275DD2-E167-4010-83DF-7C0215DD7E52}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CF275DD2-E167-4010-83DF-7C0215DD7E52}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CF275DD2-E167-4010-83DF-7C0215DD7E52}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

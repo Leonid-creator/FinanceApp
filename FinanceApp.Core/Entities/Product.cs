@@ -1,9 +1,9 @@
-﻿namespace FinanceApp.Core
+﻿namespace FinanceApp.Core.Entities
 {
     public class Product
     {
         public int ProductID { get; set; }
-        public string Name { get; set; }
+        public string ProductName { get; set; }
         public int? CategoryID { get; set; }
         public int? SubcategoryID { get; set; }
         public ICollection<PurchaseDetail> PurchaseDetails { get; set; }

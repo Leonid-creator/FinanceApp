@@ -1,3 +1,6 @@
+using Microsoft.EntityFrameworkCore;
+using FinanceApp.Infrastructure.Data;
+using FinanceApp.Infrastructure.Repositories;
 
 namespace FinanceApp.Api
 {
@@ -7,16 +10,22 @@ namespace FinanceApp.Api
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
+            var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+            builder.Services.AddDbContext<FinanceAppDbContext>(options =>
+                options.UseSqlServer(
+                    builder.Configuration.GetConnectionString("DefaultConnection"),
+                    sqlOptions => sqlOptions.EnableRetryOnFailure()
+                ));
+            builder.Services.AddScoped<FinanceRepository>();
 
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -24,10 +33,6 @@ namespace FinanceApp.Api
             }
 
             app.UseHttpsRedirection();
-
-            app.UseAuthorization();
-
-
             app.MapControllers();
 
             app.Run();

@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 
-namespace FinanceApp.Core
+namespace FinanceApp.Core.Entities
 {
     public class PurchaseDetail
     {
