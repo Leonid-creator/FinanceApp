@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using FinanceApp.Infrastructure.Data;
 using FinanceApp.Infrastructure.Repositories;
+using FinanceApp.Infrastructure.Services;
 
 namespace FinanceApp.Api
 {
@@ -18,6 +19,7 @@ namespace FinanceApp.Api
                     sqlOptions => sqlOptions.EnableRetryOnFailure()
                 ));
             builder.Services.AddScoped<FinanceRepository>();
+            //builder.Services.AddScoped<ReceiptProcessor>();
 
             builder.Services.AddControllers();
 

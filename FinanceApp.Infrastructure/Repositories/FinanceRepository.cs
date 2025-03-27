@@ -58,9 +58,7 @@ namespace FinanceApp.Infrastructure.Repositories
                 }
                 else
                 {
-                    Console.WriteLine($"Receipt \"{newReceipt.DateTime} {store.StoreName}\" already exist");
-                    Console.WriteLine("Press ENTER to continue");
-                    Console.ReadLine();
+                    throw new Exception("Receipt already exists!");
                 }
                 return newReceipt.ReceiptID;
             }

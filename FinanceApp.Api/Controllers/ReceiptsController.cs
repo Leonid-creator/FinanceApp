@@ -1,5 +1,6 @@
 ﻿using FinanceApp.Infrastructure.Data;
 using FinanceApp.Infrastructure.Repositories;
+using FinanceApp.Infrastructure.Services;
 using FinanceApp.Lib.Dtos;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -37,7 +38,12 @@ public class ReceiptsController : ControllerBase
             new TempDetails { ProductName = "Eggs", Quantity = 1, Amount = 1.2m, Discount = 0.0m, Category = "Groceries", Subcategory = "Eggs" }
         };
 
-        await _repository.AddFullReceipt(tempReceipt, tempDetails);
+        ReceiptProcessor processor = new ReceiptProcessor();
+        processor.TempReceipt = tempReceipt;
+        processor.TempDetails = tempDetails;
+        processor.ProcessReceipt();
+
+        //await _repository.AddFullReceipt(tempReceipt, tempDetails);
 
         return Ok("Receipt successfully added");
     }
