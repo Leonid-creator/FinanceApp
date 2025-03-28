@@ -14,5 +14,6 @@ namespace FinanceApp.Lib.Dtos
         public decimal Discount { get; set; }
         public string Category { get; set; }
         public string Subcategory { get; set; }
+        public bool IsProductExist { get; set; }
     }
 }

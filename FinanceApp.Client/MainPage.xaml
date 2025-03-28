@@ -1,0 +1,23 @@
+﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="FinanceApp.Client.MainPage">
+    <ScrollView>
+        <VerticalStackLayout x:Name="MainLayout" Padding="20" Spacing="10">
+            <Grid x:Name ="storeContainer" ColumnDefinitions="*, Auto" ColumnSpacing="20" RowSpacing="10">
+                <Picker x:Name="storePicker"  Title="Select store" SelectedIndexChanged="OnStoreSelected" Grid.Column="0"/>
+                <Button Text="+" Grid.Column="1"/>
+            </Grid>
+            <Grid x:Name ="receiptDetails" ColumnDefinitions="*, *, *"  ColumnSpacing="20" RowSpacing="10">
+                <DatePicker x:Name="datePicker" DateSelected="OnDateSelected" Grid.Column="0"/>
+                <Entry x:Name="totalAmountField" Placeholder="Total amount" Keyboard="Numeric" Grid.Column="1"/>
+                <Entry x:Name="receiptDiscountField" Placeholder="Receipt discount" Keyboard="Numeric" Grid.Column="2"/>
+            </Grid>
+            <Label Text="Products list" FontAttributes="Bold" FontSize="16" HorizontalTextAlignment="Center"/>
+            <VerticalStackLayout x:Name="productsLayout" Padding="0" Spacing="0">
+
+            </VerticalStackLayout>
+            <Button Text="Add product" Clicked="OnAddProductClicked"/>
+            <Button Text="Process receipt" Clicked="OnProcessReceiptClicked"/>
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

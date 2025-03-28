@@ -21,10 +21,6 @@ namespace FinanceApp.Infrastructure.Services
         
         public void ProcessReceipt()
         {
-            if (!CheckIfStoreExist())
-            {
-                throw new Exception("Store does not exist!");
-            }
             using (FinanceAppDbContext dbContext = new FinanceAppDbContext())
             {
                 using (var transaction = dbContext.Database.BeginTransaction())
@@ -43,6 +39,7 @@ namespace FinanceApp.Infrastructure.Services
                 }
             }
         }
+
         public void CheckIfProductsExist()
         {
             using (FinanceAppDbContext dbContext = new FinanceAppDbContext())
@@ -51,27 +48,11 @@ namespace FinanceApp.Infrastructure.Services
                 {
                     if (dbContext.Products.FirstOrDefault(p => p.ProductName == TempDetails[i].ProductName) == null)
                     {
-                        //Console.WriteLine($"Product \"{TempDetails[i].ProductName}\" not found in database");
-                        if (string.IsNullOrEmpty(TempDetails[i].Category))
-                        {
-                            Console.WriteLine($"Category name for \"{TempDetails[i].ProductName}\":");
-                            TempDetails[i].Category = Console.ReadLine();
-                            if (TempDetails[i].Category == string.Empty)
-                            {
-                                TempDetails[i].Category = "UNCATEGORIZED";
-                            }
-                        }
-                        CheckIfCategoryExist(i);
-                        if (string.IsNullOrEmpty(TempDetails[i].Subcategory))
-                        {
-                            Console.WriteLine($"Subcategory name for \"{TempDetails[i].ProductName}\":");
-                            TempDetails[i].Subcategory = Console.ReadLine();
-                            if (TempDetails[i].Subcategory == string.Empty)
-                            {
-                                TempDetails[i].Subcategory = "UNCATEGORIZED";
-                            }
-                        }
-                        CheckIfSubcategoryExist(i);
+                        TempDetails[i].IsProductExist = false;
+                    }
+                    else
+                    {
+                        TempDetails[i].IsProductExist = true;
                     }
                 }
             }
@@ -86,15 +67,6 @@ namespace FinanceApp.Infrastructure.Services
                 }
                 else
                 {
-                    Console.WriteLine($"Unknown store \"{TempReceipt.StoreName}\"");
-                    Console.WriteLine("Add new store? (y/n)");
-                    string option = Console.ReadLine();
-                    if (option == "y")
-                    {
-                        FinanceRepository financeRepository = new FinanceRepository(dbContext);
-                        financeRepository.AddNewStore(TempReceipt.StoreName);
-                        return true;
-                    }
                     return false;
                 }
             }
