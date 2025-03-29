@@ -2,6 +2,7 @@
 using Microsoft.IdentityModel.Tokens;
 using FinanceApp.Lib.Dtos;
 using FinanceApp.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 
 namespace FinanceApp.Infrastructure.Repositories
 {
@@ -165,6 +166,14 @@ namespace FinanceApp.Infrastructure.Repositories
                 DbContext.SaveChanges();
                 return newCategory;
             }
+        }
+
+        public Task<string[]> GetProductNamesAsync()
+        {
+            return DbContext.Products
+                .Select(p => p.ProductName)
+                .Distinct()
+                .ToArrayAsync();
         }
     }
 }

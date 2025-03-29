@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
 using FinanceApp.Lib.Dtos;
 using System.Text.Json;
+//using Android.App.AppSearch;
+//using Android.App;
 
 namespace FinanceApp.Client
 {
@@ -12,11 +14,13 @@ namespace FinanceApp.Client
     {
         private readonly HttpClient _httpClient;
         private List<ProductEntryFields> productFieldsList = new();
+        public Grid dynamicGrid2 { get; set; }
         public MainPage()
         {
             InitializeComponent();
             _httpClient = new HttpClient();
-            storePicker.ItemsSource = new List<string> { "Lidl", "Tesco", "Dunnes" };
+            storePicker.ItemsSource = new List<string> { "Lidl", "Tesco", "Dunnes", "Homesavers", "Art & Hobby", "Dealz" };
+
         }
     
         private void OnStoreSelected(object sender, EventArgs e)
@@ -32,7 +36,7 @@ namespace FinanceApp.Client
         private void AddRowToGrid()
         {
             Grid dynamicGrid1 = new Grid { Margin = new Thickness(0) };
-            Grid dynamicGrid2 = new Grid { Margin = new Thickness(0, 0, 0, 15) };
+            dynamicGrid2 = new Grid { Margin = new Thickness(0, 0, 0, 15) };
     
             dynamicGrid1.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
     
@@ -65,25 +69,39 @@ namespace FinanceApp.Client
             Button removeProductBTN = new Button { Text = "X", WidthRequest = 40, HeightRequest = 40, Margin = new Thickness(10, 0, 0, 0) };
             Grid.SetRow(removeProductBTN, 0);
             Grid.SetColumn(removeProductBTN, 3);
-            removeProductBTN.Clicked += RemoveRow;
+            removeProductBTN.Clicked += RemoveProdRow;
             dynamicGrid1.Children.Add(removeProductBTN);
     
             Entry discount = new Entry { Placeholder = "Disc", Keyboard = Keyboard.Numeric };
             Grid.SetRow(discount, 1);
             Grid.SetColumn(discount, 0);
             dynamicGrid2.Children.Add(discount);
-    
+
             Entry category = new Entry { Placeholder = "Category" };
             Grid.SetRow(category, 1);
             Grid.SetColumn(category, 1);
             dynamicGrid2.Children.Add(category);
-    
+
+            //Picker categoryPicker = new Picker { Title = "Category" };
+            //categoryPicker.ItemsSource = new List<string> { "Groceries", "Home Goods", "Utilities" };  // Список для Picker
+            ////categoryPicker.SelectedIndexChanged += CategoryPicker_SelectedIndexChanged;
+            //Grid.SetRow(categoryPicker, 1);  // Устанавливаем строку
+            //Grid.SetColumn(categoryPicker, 1);  // Устанавливаем колонку
+            //dynamicGrid2.Children.Add(categoryPicker);
+
             Entry subcategory = new Entry { Placeholder = "Subcategory" };
             Grid.SetRow(subcategory, 1);
             Grid.SetColumn(subcategory, 2);
             Grid.SetColumnSpan(subcategory, 2);
             dynamicGrid2.Children.Add(subcategory);
-    
+
+            //Picker subcategoryPicker = new Picker { Title = "Subcategory" };
+            //subcategoryPicker.ItemsSource = new List<string> { "Bread", "Milk", "Fruits", "Vegetables", "Seafood", "Herbs", "Meat and poultry" };
+            //Grid.SetRow(subcategoryPicker, 1);
+            //Grid.SetColumn(subcategoryPicker, 2);
+            //Grid.SetColumnSpan(subcategoryPicker, 2);
+            //dynamicGrid2.Children.Add(subcategoryPicker);
+
             VerticalStackLayout stackLayout = this.FindByName<VerticalStackLayout>("MyStackLayout");
             productsLayout.Children.Add(dynamicGrid1);
             productsLayout.Children.Add(dynamicGrid2);
@@ -105,8 +123,27 @@ namespace FinanceApp.Client
         {
             AddRowToGrid();
         }
-    
-        private void RemoveRow(object sender, EventArgs e)
+        private Dictionary<string, List<string>> subcategoryLists = new Dictionary<string, List<string>>
+        {
+            { "Groceries", new List<string> { "Bread", "Milk", "Fruits", "Vegetables", "Seafood", "Herbs", "Meat and poultry" } },
+            { "Home Goods", new List<string> { "Home decor", "Lighting", "Cleaning", "Storage"} },
+            { "Utilities", new List<string> { "Electricity", "Gas", "Internet and phone" } }
+        };
+        private void CategoryPicker_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            var picker = (Picker)sender;
+            var selectedCategory = picker.SelectedItem as string;
+
+            // Получаем список подкатегорий для выбранной категории
+            if (selectedCategory != null && subcategoryLists.ContainsKey(selectedCategory))
+            {
+                var subcategoryPicker = (Picker)dynamicGrid2.Children.FirstOrDefault(x => x is Picker && dynamicGrid2.GetColumn(x) == 2);
+                subcategoryPicker.ItemsSource = subcategoryLists[selectedCategory];
+                subcategoryPicker.SelectedIndex = -1; // Сброс выбора
+            }
+        }
+
+        private void RemoveProdRow(object sender, EventArgs e)
         {
             if (sender is Button button)
             {
@@ -122,7 +159,16 @@ namespace FinanceApp.Client
                 }
             }
         }
-    
+
+        private void RemoveAllProdRows()
+        {
+            // Удаляем все элементы из layout
+            productsLayout.Children.Clear();
+
+            // Если нужно, можно очистить список productFieldsList
+            productFieldsList.Clear();
+        }
+
         private async Task SendDataToApiAsync()
         {
             var tempReceipt = new
@@ -162,10 +208,12 @@ namespace FinanceApp.Client
             var jsonContent = new StringContent(JsonSerializer.Serialize(requestData, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }), Encoding.UTF8, "application/json");
     
             var response = await _httpClient.PostAsync("https://financeapp-gvaxa5fravg5grf2.ukwest-01.azurewebsites.net/api/receipts/add-test", jsonContent);
+            //var response = await _httpClient.PostAsync("http://localhost:5133/api/receipts/add-test", jsonContent);
     
             if (response.IsSuccessStatusCode)
             {
                 Console.WriteLine("Receipt successfully added");
+                RemoveAllProdRows();
             }
             else
             {
@@ -176,6 +224,27 @@ namespace FinanceApp.Client
         private async void OnProcessReceiptClicked(object sender, EventArgs e)
         {
             await SendDataToApiAsync();
+        }
+
+        private async Task GetProdFromApiAsync()
+        {
+            var response = await _httpClient.GetAsync("https://financeapp-gvaxa5fravg5grf2.ukwest-01.azurewebsites.net/api/receipts/get-products");
+            //var response = await _httpClient.GetAsync("http://localhost:5133/api/receipts/get-products");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                string[] products = JsonSerializer.Deserialize<string[]>(content);
+                productListView.ItemsSource = products;
+            }
+            else
+            {
+                Console.WriteLine("Error: " + response.ReasonPhrase);
+            }
+        }
+        private async void OnGetProductsClicked(object sender, EventArgs e)
+        {
+            await GetProdFromApiAsync();
         }
     }
 }

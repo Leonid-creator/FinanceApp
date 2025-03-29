@@ -5,40 +5,51 @@ using FinanceApp.Lib.Dtos;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-namespace FinanceApp.Api.Controllers;
-
-[ApiController]
-[Route("api/[controller]")]
-public class ReceiptsController : ControllerBase
+namespace FinanceApp.Api.Controllers
 {
-    private readonly FinanceAppDbContext _context;
-    private readonly FinanceRepository _repository;
-
-    public ReceiptsController(FinanceRepository repository)
+    [ApiController]
+    [Route("api/[controller]")]
+    public class ReceiptsController : ControllerBase
     {
-        _repository = repository;
-    }
+        private readonly FinanceAppDbContext _context;
+        private readonly FinanceRepository _repository;
+        private readonly ReceiptProcessor _processor;
 
-    [HttpPost("add-test")]
-    public async Task<IActionResult> AddTestReceipt([FromBody] ReceiptWithDetails receiptWithDetails)
-    {
-        TempReceipt tempReceipt = receiptWithDetails.tempReceipt;
-        List<TempDetails> tempDetails = receiptWithDetails.tempDetails;
+        public ReceiptsController(FinanceRepository repository)
+        {
+            _repository = repository;
+        }
+        //public ReceiptsController(ReceiptProcessor processor)
+        //{
+        //    _processor = processor;
+        //}
 
-        await _repository.AddFullReceipt(tempReceipt, tempDetails);
+        [HttpPost("add-test")]
+        public async Task<IActionResult> AddTestReceipt([FromBody] ReceiptWithDetails receiptWithDetails)
+        {
+            //_processor.TempReceipt = receiptWithDetails.tempReceipt;
+            //_processor.TempDetails = receiptWithDetails.tempDetails;
+            //await _processor.ProcessReceipt();
 
-        return Ok("Receipt successfully added");
-    }
+            TempReceipt tempReceipt = receiptWithDetails.tempReceipt;
+            List<TempDetails> tempDetails = receiptWithDetails.tempDetails;
+            await _repository.AddFullReceipt(tempReceipt, tempDetails);
 
-    [HttpGet]
-    public async Task<IActionResult> GetReceipts()
-    {
-        var receipts = await _context.Receipts
-            .Include(r => r.Store)
-            .Include(r => r.PurchaseDetails)
-                .ThenInclude(pd => pd.Product)
-            .ToListAsync();
+            return Ok("Receipt successfully added");
+        }
 
-        return Ok(receipts);
+        [HttpGet("get-products")]
+        public async Task<IActionResult> GetReceipts()
+        {
+            //var receipts = await _context.Receipts
+            //    .Include(r => r.Store)
+            //    .Include(r => r.PurchaseDetails)
+            //        .ThenInclude(pd => pd.Product)
+            //    .ToListAsync();
+
+            string[] products = await _repository.GetProductNamesAsync();
+
+            return Ok(products);
+        }
     }
 }

@@ -18,6 +18,14 @@
             </VerticalStackLayout>
             <Button Text="Add product" Clicked="OnAddProductClicked"/>
             <Button Text="Process receipt" Clicked="OnProcessReceiptClicked"/>
+            <Button Text="Get products" Clicked="OnGetProductsClicked"/>
+            <ListView x:Name="productListView">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <TextCell Text="{Binding .}" />
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

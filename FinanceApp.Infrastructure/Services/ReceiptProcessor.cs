@@ -9,11 +9,9 @@ namespace FinanceApp.Infrastructure.Services
 {
     public class ReceiptProcessor
     {
-        //private readonly FinanceAppDbContext _context;
-        //private readonly FinanceRepository _repository;
         public TempReceipt TempReceipt { get; set; }
         public List<TempDetails> TempDetails { get; set; }
-        public ReceiptProcessor()
+        public ReceiptProcessor(FinanceAppDbContext context)
         {
             TempReceipt = new TempReceipt();
             TempDetails = new List<TempDetails>();

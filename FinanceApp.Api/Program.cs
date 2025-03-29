@@ -19,7 +19,7 @@ namespace FinanceApp.Api
                     sqlOptions => sqlOptions.EnableRetryOnFailure()
                 ));
             builder.Services.AddScoped<FinanceRepository>();
-            //builder.Services.AddScoped<ReceiptProcessor>();
+            builder.Services.AddScoped<ReceiptProcessor>();
 
             builder.Services.AddControllers();
 
