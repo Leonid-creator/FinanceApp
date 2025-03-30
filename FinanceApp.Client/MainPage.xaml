@@ -10,7 +10,7 @@
             <Grid x:Name ="receiptDetails" ColumnDefinitions="*, *, *"  ColumnSpacing="20" RowSpacing="10">
                 <DatePicker x:Name="datePicker" DateSelected="OnDateSelected" Grid.Column="0"/>
                 <Entry x:Name="totalAmountField" Placeholder="Total amount" Keyboard="Numeric" Grid.Column="1"/>
-                <Entry x:Name="receiptDiscountField" Placeholder="Receipt discount" Keyboard="Numeric" Grid.Column="2"/>
+                <Entry x:Name="receiptDiscountField" Placeholder="Receipt discount" Keyboard="Numeric" Grid.Column="2" Text="0"/>
             </Grid>
             <Label Text="Products list" FontAttributes="Bold" FontSize="16" HorizontalTextAlignment="Center"/>
             <VerticalStackLayout x:Name="productsLayout" Padding="0" Spacing="0">

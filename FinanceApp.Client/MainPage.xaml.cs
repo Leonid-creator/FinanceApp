@@ -19,8 +19,7 @@ namespace FinanceApp.Client
         {
             InitializeComponent();
             _httpClient = new HttpClient();
-            storePicker.ItemsSource = new List<string> { "Lidl", "Tesco", "Dunnes", "Homesavers", "Art & Hobby", "Dealz" };
-
+            LoadStoresIntoPickerAsync();
         }
     
         private void OnStoreSelected(object sender, EventArgs e)
@@ -51,7 +50,7 @@ namespace FinanceApp.Client
             dynamicGrid2.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
             dynamicGrid2.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
     
-            Entry quantity = new Entry { Placeholder = "Q-ty", Keyboard = Keyboard.Numeric };
+            Entry quantity = new Entry { Placeholder = "Q-ty", Keyboard = Keyboard.Numeric, Text = "1"};
             Grid.SetRow(quantity, 0);
             Grid.SetColumn(quantity, 0);
             dynamicGrid1.Children.Add(quantity);
@@ -61,7 +60,7 @@ namespace FinanceApp.Client
             Grid.SetColumn(productName, 1);
             dynamicGrid1.Children.Add(productName);
     
-            Entry amount = new Entry { Placeholder = "Amount", Keyboard = Keyboard.Numeric };
+            Entry amount = new Entry { Placeholder = "Price", Keyboard = Keyboard.Numeric };
             Grid.SetRow(amount, 0);
             Grid.SetColumn(amount, 2);
             dynamicGrid1.Children.Add(amount);
@@ -72,35 +71,35 @@ namespace FinanceApp.Client
             removeProductBTN.Clicked += RemoveProdRow;
             dynamicGrid1.Children.Add(removeProductBTN);
     
-            Entry discount = new Entry { Placeholder = "Disc", Keyboard = Keyboard.Numeric };
+            Entry discount = new Entry { Placeholder = "Disc", Keyboard = Keyboard.Numeric, Text = "0" };
             Grid.SetRow(discount, 1);
             Grid.SetColumn(discount, 0);
             dynamicGrid2.Children.Add(discount);
 
-            Entry category = new Entry { Placeholder = "Category" };
-            Grid.SetRow(category, 1);
-            Grid.SetColumn(category, 1);
-            dynamicGrid2.Children.Add(category);
+            //Entry category = new Entry { Placeholder = "Category" };
+            //Grid.SetRow(category, 1);
+            //Grid.SetColumn(category, 1);
+            //dynamicGrid2.Children.Add(category);
 
-            //Picker categoryPicker = new Picker { Title = "Category" };
-            //categoryPicker.ItemsSource = new List<string> { "Groceries", "Home Goods", "Utilities" };  // Список для Picker
-            ////categoryPicker.SelectedIndexChanged += CategoryPicker_SelectedIndexChanged;
-            //Grid.SetRow(categoryPicker, 1);  // Устанавливаем строку
-            //Grid.SetColumn(categoryPicker, 1);  // Устанавливаем колонку
-            //dynamicGrid2.Children.Add(categoryPicker);
+            Picker categoryPicker = new Picker { Title = "Category" };
+            categoryPicker.ItemsSource = new List<string> { "Groceries", "Home Goods", "Utilities" };  // Список для Picker
+            categoryPicker.SelectedIndexChanged += CategoryPicker_SelectedIndexChanged;
+            Grid.SetRow(categoryPicker, 1);  // Устанавливаем строку
+            Grid.SetColumn(categoryPicker, 1);  // Устанавливаем колонку
+            dynamicGrid2.Children.Add(categoryPicker);
 
-            Entry subcategory = new Entry { Placeholder = "Subcategory" };
-            Grid.SetRow(subcategory, 1);
-            Grid.SetColumn(subcategory, 2);
-            Grid.SetColumnSpan(subcategory, 2);
-            dynamicGrid2.Children.Add(subcategory);
+            //Entry subcategory = new Entry { Placeholder = "Subcategory" };
+            //Grid.SetRow(subcategory, 1);
+            //Grid.SetColumn(subcategory, 2);
+            //Grid.SetColumnSpan(subcategory, 2);
+            //dynamicGrid2.Children.Add(subcategory);
 
-            //Picker subcategoryPicker = new Picker { Title = "Subcategory" };
+            Picker subcategoryPicker = new Picker { Title = "Subcategory" };
             //subcategoryPicker.ItemsSource = new List<string> { "Bread", "Milk", "Fruits", "Vegetables", "Seafood", "Herbs", "Meat and poultry" };
-            //Grid.SetRow(subcategoryPicker, 1);
-            //Grid.SetColumn(subcategoryPicker, 2);
-            //Grid.SetColumnSpan(subcategoryPicker, 2);
-            //dynamicGrid2.Children.Add(subcategoryPicker);
+            Grid.SetRow(subcategoryPicker, 1);
+            Grid.SetColumn(subcategoryPicker, 2);
+            Grid.SetColumnSpan(subcategoryPicker, 2);
+            dynamicGrid2.Children.Add(subcategoryPicker);
 
             VerticalStackLayout stackLayout = this.FindByName<VerticalStackLayout>("MyStackLayout");
             productsLayout.Children.Add(dynamicGrid1);
@@ -112,8 +111,8 @@ namespace FinanceApp.Client
                 ProductName = productName,
                 Amount = amount,
                 Discount = discount,
-                Category = category,
-                Subcategory = subcategory
+                Category = categoryPicker,
+                Subcategory = subcategoryPicker
             };
 
             productFieldsList.Add(productFields);
@@ -193,8 +192,8 @@ namespace FinanceApp.Client
                         Quantity = quantity,
                         Amount = amount,
                         Discount = discount,
-                        Category = fields.Category.Text,
-                        Subcategory = fields.Subcategory.Text
+                        Category = fields.Category.SelectedItem?.ToString(),
+                        Subcategory = fields.Subcategory.SelectedItem?.ToString()
                     });
                 }
             }
@@ -207,17 +206,19 @@ namespace FinanceApp.Client
     
             var jsonContent = new StringContent(JsonSerializer.Serialize(requestData, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }), Encoding.UTF8, "application/json");
     
-            var response = await _httpClient.PostAsync("https://financeapp-gvaxa5fravg5grf2.ukwest-01.azurewebsites.net/api/receipts/add-test", jsonContent);
-            //var response = await _httpClient.PostAsync("http://localhost:5133/api/receipts/add-test", jsonContent);
+            //var response = await _httpClient.PostAsync("https://financeapp-gvaxa5fravg5grf2.ukwest-01.azurewebsites.net/api/receipts/add-test", jsonContent);
+            var response = await _httpClient.PostAsync("http://localhost:5133/api/receipts/add-test", jsonContent);
     
             if (response.IsSuccessStatusCode)
             {
                 Console.WriteLine("Receipt successfully added");
                 RemoveAllProdRows();
+                await Application.Current.MainPage.DisplayAlert("Success", "Receipt added", "ОК");
             }
             else
             {
                 Console.WriteLine("Error: " + response.ReasonPhrase);
+                await Application.Current.MainPage.DisplayAlert("Error", response.ReasonPhrase, "ОК");
             }
         }
     
@@ -228,13 +229,13 @@ namespace FinanceApp.Client
 
         private async Task GetProdFromApiAsync()
         {
-            var response = await _httpClient.GetAsync("https://financeapp-gvaxa5fravg5grf2.ukwest-01.azurewebsites.net/api/receipts/get-products");
-            //var response = await _httpClient.GetAsync("http://localhost:5133/api/receipts/get-products");
+            //var response = await _httpClient.GetAsync("https://financeapp-gvaxa5fravg5grf2.ukwest-01.azurewebsites.net/api/receipts/get-products");
+            var response = await _httpClient.GetAsync("http://localhost:5133/api/receipts/get-products");
 
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
-                string[] products = JsonSerializer.Deserialize<string[]>(content);
+                List<string> products = JsonSerializer.Deserialize<List<string>>(content);
                 productListView.ItemsSource = products;
             }
             else
@@ -245,6 +246,22 @@ namespace FinanceApp.Client
         private async void OnGetProductsClicked(object sender, EventArgs e)
         {
             await GetProdFromApiAsync();
+        }
+
+        private async Task LoadStoresIntoPickerAsync()
+        {
+            var response = await _httpClient.GetAsync("http://localhost:5133/api/receipts/get-stores");
+
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                var storeList = JsonSerializer.Deserialize<List<string>>(content);
+                storePicker.ItemsSource = storeList;
+            }
+            else
+            {
+                Console.WriteLine("Ошибка: " + response.ReasonPhrase);
+            }
         }
     }
 }

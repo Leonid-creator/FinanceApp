@@ -12,7 +12,7 @@ namespace FinanceApp.Client
         public Entry ProductName { get; set; }
         public Entry Amount { get; set; }
         public Entry Discount { get; set; }
-        public Entry Category { get; set; }
-        public Entry Subcategory { get; set; }
+        public Picker Category { get; set; }
+        public Picker Subcategory { get; set; }
     }
 }

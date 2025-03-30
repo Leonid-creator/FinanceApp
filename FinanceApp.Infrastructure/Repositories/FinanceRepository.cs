@@ -8,7 +8,7 @@ namespace FinanceApp.Infrastructure.Repositories
 {
     public class FinanceRepository
     {
-        public readonly FinanceAppDbContext DbContext;
+        readonly FinanceAppDbContext DbContext;
         public FinanceRepository(FinanceAppDbContext context)
         {
             DbContext = context;
@@ -168,10 +168,17 @@ namespace FinanceApp.Infrastructure.Repositories
             }
         }
 
-        public Task<string[]> GetProductNamesAsync()
+        public Task<List<string>> GetProductNamesAsync()
         {
             return DbContext.Products
                 .Select(p => p.ProductName)
+                .Distinct()
+                .ToListAsync();
+        }
+        public Task<string[]> GetStoreNamesAsync()
+        {
+            return DbContext.Stores
+                .Select(s => s.StoreName)
                 .Distinct()
                 .ToArrayAsync();
         }
