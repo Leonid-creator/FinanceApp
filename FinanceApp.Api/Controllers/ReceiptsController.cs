@@ -1,4 +1,4 @@
-﻿using FinanceApp.Infrastructure.Data;
+﻿using FinanceApp.Core.Entities;
 using FinanceApp.Infrastructure.Repositories;
 using FinanceApp.Infrastructure.Services;
 using FinanceApp.Lib.Dtos;
@@ -11,12 +11,12 @@ namespace FinanceApp.Api.Controllers
     [Route("api/[controller]")]
     public class ReceiptsController : ControllerBase
     {
-        private readonly FinanceAppDbContext _context;
         private readonly FinanceRepository _repository;
         private readonly ReceiptProcessor _processor;
 
-        public ReceiptsController(FinanceRepository repository)
+        public ReceiptsController(ReceiptProcessor processor, FinanceRepository repository)
         {
+            _processor = processor;
             _repository = repository;
         }
 
@@ -25,9 +25,21 @@ namespace FinanceApp.Api.Controllers
         {
             TempReceipt tempReceipt = receiptWithDetails.tempReceipt;
             List<TempDetails> tempDetails = receiptWithDetails.tempDetails;
-            await _repository.AddFullReceipt(tempReceipt, tempDetails);
+            //await _repository.AddFullReceipt(tempReceipt, tempDetails);
+
+            //_processor.TempReceipt = tempReceipt;
+            //_processor.TempDetails = tempDetails;
+            await _processor.ProcessReceipt();
 
             return Ok("Receipt successfully added");
+        }
+
+        [HttpPost("add-store")]
+        public async Task<Store> AddNewStoreAsync([FromBody] StoreDto storeDto)
+        {
+            Store newStore = new Store() { StoreName = storeDto.StoreDtoName };
+            return await _processor.AddNewStoreAsync(newStore);
+            // Ok("Store successfully added");
         }
 
         [HttpGet("get-products")]
@@ -42,8 +54,8 @@ namespace FinanceApp.Api.Controllers
         public async Task<IActionResult> GetStores()
         {
             var stores = await _repository.GetStoreNamesAsync();
-            return Ok(stores);
+            StoreDto retStores = new StoreDto() { StoreDtoName = stores.First() };
+            return Ok(retStores);
         }
-
     }
 }

@@ -1,7 +1,10 @@
 using Microsoft.EntityFrameworkCore;
+using FinanceApp.Lib.Dtos;
 using FinanceApp.Infrastructure.Data;
 using FinanceApp.Infrastructure.Repositories;
 using FinanceApp.Infrastructure.Services;
+using FinanceApp.Infrastructure;
+using FinanceApp.Infrastructure.Repositories.Interfaces;
 
 namespace FinanceApp.Api
 {
@@ -18,7 +21,18 @@ namespace FinanceApp.Api
                     builder.Configuration.GetConnectionString("DefaultConnection"),
                     sqlOptions => sqlOptions.EnableRetryOnFailure()
                 ));
+
             builder.Services.AddScoped<FinanceRepository>();
+            builder.Services.AddScoped<IReceiptRepository, ReceiptRepository>();
+            builder.Services.AddScoped<IStoreRepository, StoreRepository>();
+            builder.Services.AddScoped<IProductRepository, ProductRepository>();
+            builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+            builder.Services.AddScoped<ISubcategoryRepository, SubcategoryRepository>();
+            builder.Services.AddScoped<IPurchaseDetailRepository, PurchaseDetailRepository>();
+            builder.Services.AddScoped(typeof(IGeneralFinanceRepository<>), typeof(GeneralFinanceRepository<>));
+            builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+            builder.Services.AddScoped<TempReceipt>();
+            builder.Services.AddScoped<List<TempDetails>>();
             builder.Services.AddScoped<ReceiptProcessor>();
 
             builder.Services.AddControllers();

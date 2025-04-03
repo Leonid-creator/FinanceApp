@@ -1,138 +1,324 @@
 ﻿using FinanceApp.Core.Entities;
-using FinanceApp.Infrastructure.Repositories;
 using FinanceApp.Lib.Dtos;
-using FinanceApp.Infrastructure.Data;
 using FinanceApp.Infrastructure.Exceptions;
-using Microsoft.EntityFrameworkCore;
+using FinanceApp.Infrastructure.Repositories.Interfaces;
 
 namespace FinanceApp.Infrastructure.Services
 {
     public class ReceiptProcessor
     {
-        public TempReceipt TempReceipt { get; set; }
-        public List<TempDetails> TempDetails { get; set; }
-        public ReceiptProcessor(FinanceAppDbContext context)
+        private readonly IUnitOfWork _unitOfWork;
+        private List<TempDetails> _tempDetails;
+        private TempReceipt _tempReceipt;
+        public ReceiptProcessor(IUnitOfWork unitOfWork, TempReceipt tempReceipt, List<TempDetails> tempDetails)
         {
-            TempReceipt = new TempReceipt();
-            TempDetails = new List<TempDetails>();
+            _unitOfWork = unitOfWork;
+            _tempDetails = tempDetails;
+            _tempReceipt = tempReceipt;
         }
-        
-        public void ProcessReceipt()
+        public async Task ProcessReceipt() 
         {
-            using (FinanceAppDbContext dbContext = new FinanceAppDbContext())
+            try
             {
-                using (var transaction = dbContext.Database.BeginTransaction())
+                using (var transaction = await _unitOfWork.BeginTransactionAsync(System.Data.IsolationLevel.Serializable))
                 {
-                    try
+                    CheckTotalAmount();
+                    Store store = await GetStoreByNameAsync(_tempReceipt.StoreName);
+                    if (store == null)
                     {
-                        FinanceRepository financeRepository = new FinanceRepository(dbContext);
-                        financeRepository.AddFullReceipt(TempReceipt, TempDetails);
-                        transaction.Commit();
-                    }
-                    catch (Exception ex)
-                    {
-                        transaction.Rollback();
-                        Console.WriteLine(ex);
-                    }
-                }
-            }
-        }
-
-        public void CheckIfProductsExist()
-        {
-            using (FinanceAppDbContext dbContext = new FinanceAppDbContext())
-            {
-                for (int i = 0; i < TempDetails.Count; i++)
-                {
-                    if (dbContext.Products.FirstOrDefault(p => p.ProductName == TempDetails[i].ProductName) == null)
-                    {
-                        TempDetails[i].IsProductExist = false;
+                        throw new StoreNotFoundException($"Store with name \"{_tempReceipt.StoreName}\" not found");
                     }
                     else
                     {
-                        TempDetails[i].IsProductExist = true;
+                        Receipt receipt = new Receipt
+                        {
+                            StoreID = store.StoreID,
+                            DateTime = _tempReceipt.DateTime,
+                            TotalAmount = _tempReceipt.TotalAmount,
+                            ReceiptDiscount = _tempReceipt.ReceiptDiscount
+                        };
+                        await AddNewReceiptAsync(receipt);
+                        for (int i = 0; _tempDetails.Count() > i; i++)
+                        {
+                            Product product = await GetProductByNameAsync(_tempDetails[i].ProductName);
+                            if (product == null)
+                            {
+                                Category category = await GetCategoryByNameAsync(_tempDetails[i].Category);
+                                if (category == null)
+                                {
+                                    throw new CategoryNotFoundException($"Category with name \"{_tempDetails[i].Category}\" not found");
+                                }
+                                Subcategory subcategory = await GetSubcategoryByNameAsync(_tempDetails[i].Subcategory);
+                                if (subcategory == null || subcategory.CategoryID != category.CategoryID)
+                                {
+                                    throw new SubcategoryNotFoundException($"Subcategory with name \"{_tempDetails[i].Subcategory}\" not found");
+                                }
+                                product.ProductName = _tempDetails[i].ProductName;
+                                product.CategoryID = category.CategoryID;
+                                product.SubcategoryID = subcategory.SubcategoryID;
+                                AddNewProduct(product);
+                            }
+                            PurchaseDetail purchaseDetail = new PurchaseDetail
+                            {
+                                ReceiptID = receipt.ReceiptID,
+                                ProductID = product.ProductID,
+                                Quantity = _tempDetails[i].Quantity,
+                                Amount = _tempDetails[i].Amount,
+                                Discount = _tempDetails[i].Discount
+                            };
+                            await AddNewPurchaseDetailAsync(purchaseDetail);
+                        }
                     }
+                    await _unitOfWork.SaveChangesAsync();
+                    await transaction.CommitAsync();
                 }
             }
-        }
-        public bool CheckIfStoreExist()
-        {
-            using (FinanceAppDbContext dbContext = new FinanceAppDbContext())
+            catch
             {
-                if (dbContext.Stores.FirstOrDefault(s => s.StoreName == TempReceipt.StoreName) != null)
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
+                throw new Exception("Error processing receipt");
             }
         }
-        public bool CheckIfCategoryExist(int prodNum)
+        public void CheckTotalAmount() 
         {
-            using (FinanceAppDbContext dbContext = new FinanceAppDbContext())
-            {
-                //for (int i = 0; i < TempDetails.Count; i++)
-                //{
-                if (dbContext.Categories.FirstOrDefault(c => c.CategoryName == TempDetails[prodNum].Category) == null)
-                {
-                    Console.WriteLine($"Unknown category \"{TempDetails[prodNum].Category}\"");
-                    Console.WriteLine("Add new category? (y/n)");
-                    string option = Console.ReadLine();
-                    if (option == "y")
-                    {
-                        FinanceRepository financeRepository = new FinanceRepository(dbContext);
-                        financeRepository.AddNewCategory(TempDetails[prodNum].Category);
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-                //}
-                return true;
-            }
-        }
-        public bool CheckIfSubcategoryExist(int prodNum)
-        {
-            using (FinanceAppDbContext dbContext = new FinanceAppDbContext())
-            {
-                FinanceRepository financeRepository = new FinanceRepository(dbContext);
-                //for (int i = 0; i < TempDetails.Count; i++)
-                //{
-                Category category = dbContext.Categories.FirstOrDefault(c => c.CategoryName == TempDetails[prodNum].Category);
-                if (category == null)
-                {
-                    throw new NullReferenceException($"Unknown category \"{TempDetails[prodNum].Category}\"");
-                }
-                Subcategory subcategory = dbContext.Subcategories.FirstOrDefault(s => s.SubcategoryName == TempDetails[prodNum].Subcategory && s.CategoryID == category.CategoryID);
-                if (subcategory == null)
-                {
-                    Console.WriteLine($"Unknown subcategory \"{TempDetails[prodNum].Subcategory}\"");
-                    Console.WriteLine("Add new subcategory? (y/n)");
-                    string option = Console.ReadLine();
-                    if (option == "y")
-                    {
-                        financeRepository.AddNewSubcategory(TempDetails[prodNum].Category, TempDetails[prodNum].Subcategory);
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-                //}
-                return true;
-            }
-        }
-        public void CheckTotalAmount()
-        {
-            decimal sumAmountByDetails = TempDetails.Sum(s => s.Amount * s.Quantity + s.Discount);
-            decimal diffAmount = TempReceipt.TotalAmount - TempReceipt.ReceiptDiscount - sumAmountByDetails;
+            decimal sumAmountByDetails = _tempDetails.Sum(s => s.Amount * s.Quantity + s.Discount);
+            decimal diffAmount = _tempReceipt.TotalAmount - _tempReceipt.ReceiptDiscount - sumAmountByDetails;
             if (diffAmount != 0)
             {
                 throw new WrongAmountException($"Error! Total amount are not equal to sum of amounts in Details ({diffAmount})");
             }
+        }
+
+        //--------------------Category----------------------- +
+        public async Task<Category> AddNewCategoryAsync(Category newCategory)
+        {
+            try
+            {
+                Category category = await _unitOfWork.CategoryRepository.GetCategoryByNameAsync(newCategory.CategoryName);
+                if (category != null)
+                {
+                    throw new CategoryAlreadyExistsException($"Category with name \"{newCategory.CategoryName}\" already exists");
+                }
+                else
+                {
+                    return await _unitOfWork.CategoryRepository.AddEntityAsync(newCategory);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error adding category to database", ex);
+            }
+        }
+        public async Task<Category> GetCategoryByIdAsync(int categoryId)
+        {
+            try
+            {
+                return await _unitOfWork.CategoryRepository.GetByIdAsync(categoryId);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error getting category by ID from database", ex);
+            }
+        }
+        public async Task<IEnumerable<Category>> GetCategoriesAsync()
+        {
+            try
+            {
+                return await _unitOfWork.CategoryRepository.GetAllAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error getting categories from database", ex);
+            }
+        }
+        public async Task<bool> DeleteCategoryByIdAsync(int categoryId)
+        {
+            try
+            {
+                Category category = await _unitOfWork.CategoryRepository.GetByIdAsync(categoryId);
+                if (category == null)
+                {
+                    return false;
+                }
+                else
+                {
+                    return await _unitOfWork.CategoryRepository.DeleteByIdAsync(categoryId);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error deleting category by ID from database", ex);
+            }
+        }
+        public async Task<Category> UpdateCategoryAsync(Category category)
+        {
+            try
+            {
+                Category existingCategory = await _unitOfWork.CategoryRepository.GetByIdAsync(category.CategoryID);
+                if (existingCategory == null)
+                {
+                    throw new NullReferenceException($"Category with ID {category.CategoryID} not found");
+                }
+                else
+                {
+                    return await _unitOfWork.CategoryRepository.UpdateAsync(category);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error updating category", ex);
+            }
+        }
+        public async Task<Category> GetCategoryByNameAsync(string categoryName)
+        {
+            try
+            {
+                return await _unitOfWork.CategoryRepository.GetCategoryByNameAsync(categoryName);
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error getting category by name from database", ex);
+            }
+        }
+
+
+        //--------------------Product------------------------
+        public async Task<Product> AddNewProduct(Product newProduct)
+        {
+            Product addedProduct = await _unitOfWork.ProductRepository.AddEntityAsync(newProduct);
+            await _unitOfWork.SaveChangesAsync();
+            return addedProduct;
+        }
+        public async Task<Product> GetProductByIdAsync(int productId)
+        {
+            return await _unitOfWork.ProductRepository.GetByIdAsync(productId);
+        }
+        public async Task<Product> GetProductByNameAsync(string productName)
+        {
+            return await _unitOfWork.ProductRepository.GetProductByNameAsync(productName);
+        }
+        public async Task<IEnumerable<Product>> GetProductsAsync()
+        {
+            return await _unitOfWork.ProductRepository.GetAllAsync();
+        }
+        public async Task<Product> UpdateProductAsync(Product product)
+        {
+            return await _unitOfWork.ProductRepository.UpdateAsync(product);
+        }
+        public async Task<bool> DeleteProductByIdAsync(Product product)
+        {
+            return await _unitOfWork.ProductRepository.DeleteByIdAsync(product.ProductID);
+        }
+
+
+        //--------------------PurchaseDetail-----------------
+        public async Task<PurchaseDetail> AddNewPurchaseDetailAsync(PurchaseDetail newPurchaseDetail)
+        {
+            PurchaseDetail addedPurchaseDetail = await _unitOfWork.PurchaseDetailRepository.AddEntityAsync(newPurchaseDetail);
+            await _unitOfWork.SaveChangesAsync();
+            return addedPurchaseDetail;
+        }
+        public async Task<IEnumerable<PurchaseDetail>> GetPurchaseDetails()
+        {
+            return await _unitOfWork.PurchaseDetailRepository.GetAllAsync();
+        }
+        public async Task<PurchaseDetail> GetPurchaseDetailByIdAsync(int receiptId, int productId)
+        {
+            return await _unitOfWork.PurchaseDetailRepository.GetPurchaseDetailByIdAsync(receiptId, productId);
+        }
+        public async Task<PurchaseDetail> UpdatePurchaseDetailAsync(PurchaseDetail purchaseDetail)
+        {
+            return await _unitOfWork.PurchaseDetailRepository.UpdateAsync(purchaseDetail);
+        }
+        public async Task<bool> DeletePurchaseDetailByIdAsync(PurchaseDetail purchaseDetail)
+        {
+            return await _unitOfWork.PurchaseDetailRepository.DeletePurchaseDetailByIdAsync(purchaseDetail.ReceiptID, purchaseDetail.ProductID);
+        }
+
+
+        //--------------------Receipt------------------------
+        public async Task<Receipt> AddNewReceiptAsync(Receipt newReceipt)
+        {
+            Receipt addedReceipt = await _unitOfWork.ReceiptRepository.AddEntityAsync(newReceipt);
+            await _unitOfWork.SaveChangesAsync();
+            return addedReceipt;
+        }
+        public async Task<Receipt> GetReceiptByIdAsync(int receiptId)
+        {
+            return await _unitOfWork.ReceiptRepository.GetByIdAsync(receiptId);
+        }
+        public async Task<IEnumerable<Receipt>> GetReceiptsAsync()
+        {
+            return await _unitOfWork.ReceiptRepository.GetAllAsync();
+        }
+        public async Task<Receipt> UpdateReceiptAsync(Receipt receipt)
+        {
+            return await _unitOfWork.ReceiptRepository.UpdateAsync(receipt);
+        }
+        public async Task<bool> DeleteReceiptByIdAsync(Receipt receipt)
+        {
+            return await _unitOfWork.ReceiptRepository.DeleteByIdAsync(receipt.ReceiptID);
+        }
+
+
+        //--------------------Store--------------------------
+        public async Task<Store> AddNewStoreAsync(Store newStore)
+        {
+            Store addedStore = await _unitOfWork.StoreRepository.AddEntityAsync(newStore);
+            await _unitOfWork.SaveChangesAsync();
+            return addedStore;
+        }
+        public async Task<Store> GetStoreByIdAsync(int storeId)
+        {
+            return await _unitOfWork.StoreRepository.GetByIdAsync(storeId);
+        }
+        public async Task<Store> GetStoreByNameAsync(string storeName)
+        {
+            return await _unitOfWork.StoreRepository.GetStoreByNameAsync(storeName);
+        }
+        public async Task<IEnumerable<Store>> GetStoresAsync()
+        {
+            return await _unitOfWork.StoreRepository.GetAllAsync();
+        }
+        public async Task<Store> UpdateStoreAsync(Store store)
+        {
+            return await _unitOfWork.StoreRepository.UpdateAsync(store);
+        }
+        public async Task<bool> DeleteStoreByIdAsync(int storeId)
+        {
+            return await _unitOfWork.StoreRepository.DeleteByIdAsync(storeId);
+        }
+
+
+        //--------------------Subcategory--------------------
+        public async Task<Subcategory> AddNewSubcategoryAsync(Subcategory newSubcategory)
+        {
+            Subcategory addedSubcategory = await _unitOfWork.SubcategoryRepository.AddEntityAsync(newSubcategory);
+            await _unitOfWork.SaveChangesAsync();
+            return addedSubcategory;
+        }
+        public async Task<Subcategory> GetSubcategoryByIdAsync(int subcategoryId)
+        {
+            return await _unitOfWork.SubcategoryRepository.GetByIdAsync(subcategoryId);
+        }
+        public async Task<Subcategory> GetSubcategoryByNameAsync(string subcategoryName)
+        {
+            return await _unitOfWork.SubcategoryRepository.GetSubcategoryByNameAsync(subcategoryName);
+        }
+        public async Task<IEnumerable<Subcategory>> GetSubcategoriesAsync()
+        {
+            return await _unitOfWork.SubcategoryRepository.GetAllAsync();
+        }
+        public async Task<Subcategory> UpdateSubcategoryAsync(Subcategory subcategory)
+        {
+            return await _unitOfWork.SubcategoryRepository.UpdateAsync(subcategory);
+        }
+        public async Task<bool> DeleteSubcategoryByIdAsync(int subcategoryId)
+        {
+            return await _unitOfWork.SubcategoryRepository.DeleteByIdAsync(subcategoryId);
+        }
+        public async Task<IEnumerable<Subcategory>> GetSubcategoriesByCategoryAsync(Category category)
+        {
+            return await _unitOfWork.SubcategoryRepository.GetSubcatsByCatIdAsync(category.CategoryID);
         }
     }
 }

@@ -5,7 +5,7 @@
         <VerticalStackLayout x:Name="MainLayout" Padding="20" Spacing="10">
             <Grid x:Name ="storeContainer" ColumnDefinitions="*, Auto" ColumnSpacing="20" RowSpacing="10">
                 <Picker x:Name="storePicker"  Title="Select store" SelectedIndexChanged="OnStoreSelected" Grid.Column="0"/>
-                <Button Text="+" Grid.Column="1"/>
+                <Button Text="+" Clicked="OnAddStoreClicked" Grid.Column="1"/>
             </Grid>
             <Grid x:Name ="receiptDetails" ColumnDefinitions="*, *, *"  ColumnSpacing="20" RowSpacing="10">
                 <DatePicker x:Name="datePicker" DateSelected="OnDateSelected" Grid.Column="0"/>
@@ -18,7 +18,11 @@
             </VerticalStackLayout>
             <Button Text="Add product" Clicked="OnAddProductClicked"/>
             <Button Text="Process receipt" Clicked="OnProcessReceiptClicked"/>
-            <Button Text="Get products" Clicked="OnGetProductsClicked"/>
+            <Grid x:Name ="funcContainer" ColumnDefinitions="*, *, *" ColumnSpacing="20" RowSpacing="10">
+                <Button Text="Get products" Clicked="OnGetProductsClicked" Grid.Column="0"/>
+                <Button Text="Add Cat." Clicked="OnAddCategoryClicked" Grid.Column="1"/>
+                <Button Text="Add Subcat." Clicked="OnAddSubcategoryClicked" Grid.Column="2"/>
+            </Grid>
             <ListView x:Name="productListView">
                 <ListView.ItemTemplate>
                     <DataTemplate>

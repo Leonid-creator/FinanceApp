@@ -13,6 +13,7 @@ namespace FinanceApp.Infrastructure.Repositories
         {
             DbContext = context;
         }
+
         public Task AddFullReceipt(TempReceipt tempReceipt, List<TempDetails> tempDetails)
         {
             int receiptID = AddBriefReceiptInfo(tempReceipt);
