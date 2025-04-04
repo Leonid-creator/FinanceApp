@@ -23,6 +23,17 @@ namespace FinanceApp.Infrastructure.Repositories
                 throw new Exception("Error getting subcategory by name from database");
             }
         }
+        public async Task<Subcategory> GetSubcategoryByNameAndCategoryIdAsync(string subcategoryName, int categoryId)
+        {
+            try
+            {
+                return await _dbContext.Subcategories.FirstOrDefaultAsync(s => s.SubcategoryName == subcategoryName && s.CategoryID == categoryId);
+            }
+            catch
+            {
+                throw new Exception("Error getting subcategory by name from database");
+            }
+        }
         public async Task<IEnumerable<Subcategory>> GetSubcatsByCatIdAsync(int categoryId)
         {
             try

@@ -20,7 +20,9 @@ namespace FinanceApp.Infrastructure.Repositories
         }
         public async Task<T> AddEntityAsync(T entity)
         {
-            return (await _dbSet.AddAsync(entity)).Entity;
+            _dbSet.AddAsync(entity);
+            await _context.SaveChangesAsync();
+            return entity;
         }
         public async Task<IEnumerable<T>> GetAllAsync()
         {

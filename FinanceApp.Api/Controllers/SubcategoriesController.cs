@@ -3,7 +3,6 @@ using FinanceApp.Infrastructure.Data;
 using FinanceApp.Infrastructure.Services;
 using FinanceApp.Lib.Dtos;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace FinanceApp.Api.Controllers
 {

@@ -8,80 +8,81 @@ namespace FinanceApp.Infrastructure.Services
     public class ReceiptProcessor
     {
         private readonly IUnitOfWork _unitOfWork;
-        private List<TempDetails> _tempDetails;
-        private TempReceipt _tempReceipt;
+        public List<TempDetails> TempDetails;
+        public TempReceipt TempReceipt;
         public ReceiptProcessor(IUnitOfWork unitOfWork, TempReceipt tempReceipt, List<TempDetails> tempDetails)
         {
             _unitOfWork = unitOfWork;
-            _tempDetails = tempDetails;
-            _tempReceipt = tempReceipt;
+            TempDetails = tempDetails;
+            TempReceipt = tempReceipt;
         }
         public async Task ProcessReceipt() 
         {
             try
             {
-                using (var transaction = await _unitOfWork.BeginTransactionAsync(System.Data.IsolationLevel.Serializable))
-                {
+                //using (var transaction = await _unitOfWork.BeginTransactionAsync(System.Data.IsolationLevel.Serializable))
+                //{
                     CheckTotalAmount();
-                    Store store = await GetStoreByNameAsync(_tempReceipt.StoreName);
+                    Store store = await GetStoreByNameAsync(TempReceipt.StoreName);
                     if (store == null)
                     {
-                        throw new StoreNotFoundException($"Store with name \"{_tempReceipt.StoreName}\" not found");
+                        throw new StoreNotFoundException($"Store with name \"{TempReceipt.StoreName}\" not found");
                     }
                     else
                     {
                         Receipt receipt = new Receipt
                         {
                             StoreID = store.StoreID,
-                            DateTime = _tempReceipt.DateTime,
-                            TotalAmount = _tempReceipt.TotalAmount,
-                            ReceiptDiscount = _tempReceipt.ReceiptDiscount
+                            DateTime = TempReceipt.DateTime,
+                            TotalAmount = TempReceipt.TotalAmount,
+                            ReceiptDiscount = TempReceipt.ReceiptDiscount
                         };
                         await AddNewReceiptAsync(receipt);
-                        for (int i = 0; _tempDetails.Count() > i; i++)
+                        for (int i = 0; TempDetails.Count() > i; i++)
                         {
-                            Product product = await GetProductByNameAsync(_tempDetails[i].ProductName);
+                            Product product = await GetProductByNameAsync(TempDetails[i].ProductName);
                             if (product == null)
                             {
-                                Category category = await GetCategoryByNameAsync(_tempDetails[i].Category);
+                                product = new Product();
+                                Category category = await GetCategoryByNameAsync(TempDetails[i].Category);
                                 if (category == null)
                                 {
-                                    throw new CategoryNotFoundException($"Category with name \"{_tempDetails[i].Category}\" not found");
+                                    throw new CategoryNotFoundException($"Category with name \"{TempDetails[i].Category}\" not found");
                                 }
-                                Subcategory subcategory = await GetSubcategoryByNameAsync(_tempDetails[i].Subcategory);
+                                Subcategory subcategory = await GetSubcategoryByNameAndCategoryIdAsync(TempDetails[i].Subcategory, category.CategoryID);
                                 if (subcategory == null || subcategory.CategoryID != category.CategoryID)
                                 {
-                                    throw new SubcategoryNotFoundException($"Subcategory with name \"{_tempDetails[i].Subcategory}\" not found");
+                                    throw new SubcategoryNotFoundException($"Subcategory with name \"{TempDetails[i].Subcategory}\" not found");
                                 }
-                                product.ProductName = _tempDetails[i].ProductName;
+                                product.ProductName = TempDetails[i].ProductName;
                                 product.CategoryID = category.CategoryID;
                                 product.SubcategoryID = subcategory.SubcategoryID;
-                                AddNewProduct(product);
+                                await AddNewProduct(product);
                             }
                             PurchaseDetail purchaseDetail = new PurchaseDetail
                             {
                                 ReceiptID = receipt.ReceiptID,
                                 ProductID = product.ProductID,
-                                Quantity = _tempDetails[i].Quantity,
-                                Amount = _tempDetails[i].Amount,
-                                Discount = _tempDetails[i].Discount
+                                Quantity = TempDetails[i].Quantity,
+                                Amount = TempDetails[i].Amount,
+                                Discount = TempDetails[i].Discount
                             };
                             await AddNewPurchaseDetailAsync(purchaseDetail);
                         }
                     }
                     await _unitOfWork.SaveChangesAsync();
-                    await transaction.CommitAsync();
-                }
+                    //await transaction.CommitAsync();
+                //}
             }
-            catch
+            catch 
             {
                 throw new Exception("Error processing receipt");
             }
         }
         public void CheckTotalAmount() 
         {
-            decimal sumAmountByDetails = _tempDetails.Sum(s => s.Amount * s.Quantity + s.Discount);
-            decimal diffAmount = _tempReceipt.TotalAmount - _tempReceipt.ReceiptDiscount - sumAmountByDetails;
+            decimal sumAmountByDetails = TempDetails.Sum(s => s.Amount * s.Quantity + s.Discount);
+            decimal diffAmount = TempReceipt.TotalAmount - TempReceipt.ReceiptDiscount - sumAmountByDetails;
             if (diffAmount != 0)
             {
                 throw new WrongAmountException($"Error! Total amount are not equal to sum of amounts in Details ({diffAmount})");
@@ -100,7 +101,8 @@ namespace FinanceApp.Infrastructure.Services
                 }
                 else
                 {
-                    return await _unitOfWork.CategoryRepository.AddEntityAsync(newCategory);
+                    category = await _unitOfWork.CategoryRepository.AddEntityAsync(newCategory);
+                    return category;
                 }
             }
             catch (Exception ex)
@@ -320,5 +322,10 @@ namespace FinanceApp.Infrastructure.Services
         {
             return await _unitOfWork.SubcategoryRepository.GetSubcatsByCatIdAsync(category.CategoryID);
         }
+        public async Task<Subcategory> GetSubcategoryByNameAndCategoryIdAsync (string subcategoryName, int categoryId)
+        {
+            return await _unitOfWork.SubcategoryRepository.GetSubcategoryByNameAndCategoryIdAsync(subcategoryName, categoryId);
+        }
+
     }
 }

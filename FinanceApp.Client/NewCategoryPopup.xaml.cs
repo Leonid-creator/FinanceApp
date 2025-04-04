@@ -1,19 +1,19 @@
 
 namespace FinanceApp.Client
 {
-    public partial class NewStorePopup
+    public partial class NewCategoryPopup
     {
-        public NewStorePopup()
+        public NewCategoryPopup()
         {
             InitializeComponent();
         }
 
         private void OnSaveClicked(object sender, EventArgs e)
         {
-            string storeName = StoreNameEntry.Text;
-            if (!string.IsNullOrWhiteSpace(storeName))
+            string categoryName = CategoryNameEntry.Text;
+            if (!string.IsNullOrWhiteSpace(categoryName))
             {
-                Close(storeName);
+                Close(categoryName);
             }
         }
 

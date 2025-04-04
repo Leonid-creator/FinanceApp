@@ -16,7 +16,8 @@ namespace FinanceApp.Infrastructure.Repositories
         {
             try
             {
-                return await _dbContext.Stores.FirstOrDefaultAsync(s => s.StoreName == storeName);
+                Store store = await _dbContext.Stores.FirstOrDefaultAsync(s => s.StoreName == storeName);
+                return store;
             }
             catch
             {

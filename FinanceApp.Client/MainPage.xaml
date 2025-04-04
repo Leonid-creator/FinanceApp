@@ -16,17 +16,17 @@
             <VerticalStackLayout x:Name="productsLayout" Padding="0" Spacing="0">
 
             </VerticalStackLayout>
-            <Button Text="Add product" Clicked="OnAddProductClicked"/>
+            <Button Text="Add product row" Clicked="OnAddProductRowClicked"/>
             <Button Text="Process receipt" Clicked="OnProcessReceiptClicked"/>
             <Grid x:Name ="funcContainer" ColumnDefinitions="*, *, *" ColumnSpacing="20" RowSpacing="10">
                 <Button Text="Get products" Clicked="OnGetProductsClicked" Grid.Column="0"/>
                 <Button Text="Add Cat." Clicked="OnAddCategoryClicked" Grid.Column="1"/>
                 <Button Text="Add Subcat." Clicked="OnAddSubcategoryClicked" Grid.Column="2"/>
             </Grid>
-            <ListView x:Name="productListView">
+            <ListView x:Name="productListView" BackgroundColor="White" >
                 <ListView.ItemTemplate>
                     <DataTemplate>
-                        <TextCell Text="{Binding .}" />
+                        <TextCell Text="{Binding .}" TextColor="Black"/>
                     </DataTemplate>
                 </ListView.ItemTemplate>
             </ListView>

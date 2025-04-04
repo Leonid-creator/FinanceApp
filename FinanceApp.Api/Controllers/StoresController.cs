@@ -3,7 +3,6 @@ using FinanceApp.Infrastructure.Data;
 using FinanceApp.Infrastructure.Services;
 using FinanceApp.Lib.Dtos;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace FinanceApp.Api.Controllers
 {
@@ -20,6 +19,13 @@ namespace FinanceApp.Api.Controllers
             _context = context;
             _processor = processor;
         }
+        [HttpPost("add-store")]
+        public async Task<Store> AddNewStoreAsync([FromBody] StoreDto storeDto)
+        {
+            Store newStore = new Store() { StoreName = storeDto.StoreDtoName };
+            return await _processor.AddNewStoreAsync(newStore);
+        }
+
         [HttpGet("get-stores")]
         public async Task<IEnumerable<StoreDto>> GetStores()
         {
