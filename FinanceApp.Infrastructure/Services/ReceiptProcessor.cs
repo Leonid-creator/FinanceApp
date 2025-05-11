@@ -23,6 +23,7 @@ namespace FinanceApp.Infrastructure.Services
                 //using (var transaction = await _unitOfWork.BeginTransactionAsync(System.Data.IsolationLevel.Serializable))
                 //{
                     CheckTotalAmount();
+                    
                     Store store = await GetStoreByNameAsync(TempReceipt.StoreName);
                     if (store == null)
                     {

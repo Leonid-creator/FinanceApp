@@ -1,16 +1,19 @@
-﻿<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             x:Class="FinanceApp.Client.MainPage">
+             x:Class="FinanceApp.Client.Pages.NewReceiptPage"
+             Title="New Receipt">
     <ScrollView>
-        <VerticalStackLayout x:Name="MainLayout" Padding="20" Spacing="10">
+        <VerticalStackLayout x:Name="MainLayout" Padding="10" Spacing="5">
             <Grid x:Name ="storeContainer" ColumnDefinitions="*, Auto" ColumnSpacing="20" RowSpacing="10">
                 <Picker x:Name="storePicker"  Title="Select store" SelectedIndexChanged="OnStoreSelected" Grid.Column="0"/>
-                <Button Text="+" Clicked="OnAddStoreClicked" Grid.Column="1"/>
+                <Button Text="+" Clicked="OnAddStoreClicked" Grid.Column="1" FontSize="20"/>
             </Grid>
-            <Grid x:Name ="receiptDetails" ColumnDefinitions="*, *, *"  ColumnSpacing="20" RowSpacing="10">
+            <Grid x:Name ="receiptDetails" ColumnDefinitions="90, 50, *, *"  ColumnSpacing="5" RowSpacing="10">
                 <DatePicker x:Name="datePicker" DateSelected="OnDateSelected" Grid.Column="0"/>
-                <Entry x:Name="totalAmountField" Placeholder="Total amount" Keyboard="Numeric" Grid.Column="1"/>
-                <Entry x:Name="receiptDiscountField" Placeholder="Receipt discount" Keyboard="Numeric" Grid.Column="2" Text="0"/>
+                <Entry x:Name="purchaseTime" Placeholder="Time" Keyboard="Default"  Grid.Column="1"/>
+                <Entry x:Name="totalAmountField" Placeholder="Total price" Keyboard="Numeric" Grid.Column="2"/>
+                <Entry x:Name="receiptDiscountField" Placeholder="Discount" Keyboard="Numeric" Grid.Column="3"/>
             </Grid>
             <Label Text="Products list" FontAttributes="Bold" FontSize="16" HorizontalTextAlignment="Center"/>
             <VerticalStackLayout x:Name="productsLayout" Padding="0" Spacing="0">
@@ -18,7 +21,7 @@
             </VerticalStackLayout>
             <Button Text="Add product row" Clicked="OnAddProductRowClicked"/>
             <Button Text="Process receipt" Clicked="OnProcessReceiptClicked"/>
-            <Grid x:Name ="funcContainer" ColumnDefinitions="*, *, *" ColumnSpacing="20" RowSpacing="10">
+            <Grid x:Name ="funcContainer" ColumnDefinitions="*, *, *" ColumnSpacing="10" RowSpacing="10">
                 <Button Text="Get products" Clicked="OnGetProductsClicked" Grid.Column="0"/>
                 <Button Text="Add Cat." Clicked="OnAddCategoryClicked" Grid.Column="1"/>
                 <Button Text="Add Subcat." Clicked="OnAddSubcategoryClicked" Grid.Column="2"/>

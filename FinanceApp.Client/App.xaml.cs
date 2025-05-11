@@ -1,4 +1,6 @@
-﻿namespace FinanceApp.Client
+﻿using FinanceApp.Client.Pages;
+
+namespace FinanceApp.Client
 {
     public partial class App : Application
     {
@@ -6,7 +8,8 @@
         {
             InitializeComponent();
 
-            MainPage = new AppShell();
+            //MainPage = new AppShell();
+            MainPage = new NavigationPage(new MainPage());
         }
     }
 }

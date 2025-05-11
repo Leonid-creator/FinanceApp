@@ -70,10 +70,19 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <MauiXaml Update="NewCategoryPopup.xaml">
+	  <Compile Update="Pages\NewReceiptPage.xaml.cs">
+	    <DependentUpon>NewReceiptPage.xaml</DependentUpon>
+	  </Compile>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <MauiXaml Update="Pages\NewReceiptPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
-	  <MauiXaml Update="NewStorePopup.xaml">
+	  <MauiXaml Update="Popups\NewCategoryPopup.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="Popups\NewStorePopup.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	</ItemGroup>
