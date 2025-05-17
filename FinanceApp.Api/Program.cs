@@ -5,6 +5,7 @@ using FinanceApp.Infrastructure.Repositories;
 using FinanceApp.Infrastructure.Services;
 using FinanceApp.Infrastructure;
 using FinanceApp.Infrastructure.Repositories.Interfaces;
+using FinanceApp.Infrastructure.Services.Interfaces;
 
 namespace FinanceApp.Api
 {
@@ -33,8 +34,15 @@ namespace FinanceApp.Api
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddScoped<TempReceipt>();
             builder.Services.AddScoped<List<TempDetails>>();
+            //----Services----
             builder.Services.AddScoped<ReceiptProcessor>();
-
+            builder.Services.AddScoped<ICategoryService, CategoryService>();
+            builder.Services.AddScoped<IProductService, ProductService>();
+            builder.Services.AddScoped<IPurchaseDetailService, PurchaseDetailService>();
+            builder.Services.AddScoped<IReceiptService, ReceiptService>();
+            builder.Services.AddScoped<IStoreService, StoreService>();
+            builder.Services.AddScoped<ISubcategoryService, SubcategorySrvice>();
+            
             builder.Services.AddControllers();
 
             builder.Services.AddEndpointsApiExplorer();

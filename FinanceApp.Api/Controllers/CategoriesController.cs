@@ -4,6 +4,7 @@ using FinanceApp.Infrastructure.Services;
 using FinanceApp.Lib.Dtos;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using FinanceApp.Infrastructure.Services.Interfaces;
 
 namespace FinanceApp.Api.Controllers
 {
@@ -12,16 +13,18 @@ namespace FinanceApp.Api.Controllers
     public class CategoriesController : ControllerBase
     {
         private readonly FinanceAppDbContext _context;
-        private readonly ReceiptProcessor _processor;
-        public CategoriesController(FinanceAppDbContext context, ReceiptProcessor processor)
+        //private readonly ReceiptProcessor _processor;
+        private readonly ICategoryService _categoryService;
+        public CategoriesController(FinanceAppDbContext context, ICategoryService categoryService)
         {
             _context = context;
-            _processor = processor;
+            //_processor = processor;
+            _categoryService = categoryService;
         }
         [HttpGet("get-categories")]
         public async Task<IEnumerable<CategoryDto>> GetCategoriesAsync()
         {
-            var categories = await _processor.GetCategoriesAsync();
+            var categories = await _categoryService.GetCategoriesAsync();
             IEnumerable<CategoryDto> categoriesDtos = categories.Select(c => new CategoryDto
             {
                 CategoryDtoId = c.CategoryID,
@@ -37,7 +40,7 @@ namespace FinanceApp.Api.Controllers
                 CategoryID = categoryDto.CategoryDtoId,
                 CategoryName = categoryDto.CategoryDtoName
             };
-            await _processor.AddNewCategoryAsync(category);
+            await _categoryService.AddNewCategoryAsync(category);
             return Ok();
         }
     }
