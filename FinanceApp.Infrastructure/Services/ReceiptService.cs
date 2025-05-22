@@ -4,8 +4,10 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using FinanceApp.Core.Entities;
+using FinanceApp.Infrastructure.Repositories;
 using FinanceApp.Infrastructure.Repositories.Interfaces;
 using FinanceApp.Infrastructure.Services.Interfaces;
+using FinanceApp.Lib.Dtos;
 
 namespace FinanceApp.Infrastructure.Services
 {
@@ -37,6 +39,18 @@ namespace FinanceApp.Infrastructure.Services
         public async Task<bool> DeleteReceiptByIdAsync(Receipt receipt)
         {
             return await _unitOfWork.ReceiptRepository.DeleteByIdAsync(receipt.ReceiptID);
+        }
+        public async Task<bool> IfReceiptExist(TempReceipt tempReceipt, int storeId)
+        {
+            Receipt receipt = await _unitOfWork.ReceiptRepository.GetReceiptByDetails(tempReceipt, storeId);
+            if (receipt == null)
+            {
+                return false;
+            }
+            else
+            {
+                return true;
+            }
         }
     }
 }

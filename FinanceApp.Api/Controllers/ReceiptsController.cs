@@ -21,18 +21,26 @@ namespace FinanceApp.Api.Controllers
         [HttpPost("add-full-receipt")]
         public async Task<IActionResult> AddFullReceipt([FromBody] ReceiptWithDetails receiptWithDetails)
         {
-            _processor.TempReceipt = receiptWithDetails.tempReceipt;
-            _processor.TempDetails = receiptWithDetails.tempDetails;
-            await _processor.ProcessReceipt();
+            try
+            {
+                _processor.TempReceipt = receiptWithDetails.tempReceipt;
+                _processor.TempDetails = receiptWithDetails.tempDetails;
+                await _processor.ProcessReceipt();
 
-            return Ok("Receipt successfully added");
+                return Ok("Receipt successfully added");
+            }
+            catch(Exception ex) 
+            {
+                var message = ex.InnerException?.Message ?? ex.Message;
+                return BadRequest(new { error = message });
+            }
+            
         }
 
         [HttpGet("get-products")]
         public async Task<IActionResult> GetReceipts()
         {
             List<string> products = await _repository.GetProductNamesAsync();
-
             return Ok(products);
         }
     }

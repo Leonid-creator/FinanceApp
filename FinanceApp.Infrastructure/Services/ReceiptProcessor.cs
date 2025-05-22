@@ -43,7 +43,10 @@ namespace FinanceApp.Infrastructure.Services
             try
             {
                 CheckTotalAmount();
-                
+                if(await CheckIfReceiptAlreadyExist())
+                {
+                    throw new Exception("This receipt already exist!");
+                }
                 Store store = await _storeService.GetStoreByNameAsync(TempReceipt.StoreName);
                 if (store == null)
                 {
@@ -93,9 +96,9 @@ namespace FinanceApp.Infrastructure.Services
                 }
                 await _unitOfWork.SaveChangesAsync();
             }
-            catch 
+            catch (Exception ex)
             {
-                throw new Exception("Error processing receipt");
+                throw new Exception("Error processing receipt", ex);
             }
         }
         public void CheckTotalAmount() 
@@ -106,6 +109,11 @@ namespace FinanceApp.Infrastructure.Services
             {
                 throw new WrongAmountException($"Error! Total amount are not equal to sum of amounts in Details ({diffAmount})");
             }
+        }
+        public async Task<bool> CheckIfReceiptAlreadyExist()
+        {
+            Store store = await _storeService.GetStoreByNameAsync(TempReceipt.StoreName);
+            return await _receiptService.IfReceiptExist(TempReceipt, store.StoreID);
         }
     }
 }

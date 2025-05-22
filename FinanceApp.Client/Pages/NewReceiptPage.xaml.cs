@@ -157,7 +157,7 @@ public partial class NewReceiptPage : ContentPage
                 sumOfPrices += (amount * quantity) + discount;
             }
         }
-        decimal amountsDifference = Convert.ToDecimal(totalAmountField.Text) + Convert.ToDecimal(receiptDiscountField.Text) - sumOfPrices;
+        decimal amountsDifference = Convert.ToDecimal(totalAmountField.Text) - Convert.ToDecimal(receiptDiscountField.Text) - sumOfPrices;
         if (amountsDifference != 0)
         {
             await Application.Current.MainPage.DisplayAlert("Error", $"The total price of the\nproducts does not equal\nthe total amount\nof the receipt!\n({amountsDifference})", "ОК");
@@ -181,7 +181,21 @@ public partial class NewReceiptPage : ContentPage
             }
             else
             {
-                await Application.Current.MainPage.DisplayAlert("Error", response.ReasonPhrase, "ОК");
+                var errorContent = await response.Content.ReadAsStringAsync();
+
+                string errorMessage;
+
+                try
+                {
+                    var errorObj = JsonSerializer.Deserialize<Dictionary<string, string>>(errorContent);
+                    errorMessage = errorObj?["error"] ?? "Unknown error";
+                }
+                catch
+                {
+                    errorMessage = "Ошибка при разборе ответа от сервера.";
+                }
+
+                await Application.Current.MainPage.DisplayAlert("Error", errorMessage, "ОК");
             }
         }
     }
