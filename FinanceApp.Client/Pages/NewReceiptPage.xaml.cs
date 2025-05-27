@@ -132,11 +132,11 @@ public partial class NewReceiptPage : ContentPage
         var tempReceipt = new
         {
             StoreName = storePicker.SelectedItem?.ToString(),
-            DateTime = datePicker.Date,
+            DateTime = datePicker.Date + timePicker.Time,
             TotalAmount = Convert.ToDecimal(totalAmountField.Text),
             ReceiptDiscount = Convert.ToDecimal(receiptDiscountField.Text)
         };
-
+        //tempReceipt.DateTime = datePicker.Date + timePicker.Time;
         List<TempDetails> tempDetails = new List<TempDetails>();
         decimal sumOfPrices = 0;
         foreach (var fields in productFieldsList)
@@ -192,7 +192,7 @@ public partial class NewReceiptPage : ContentPage
                 }
                 catch
                 {
-                    errorMessage = "Ошибка при разборе ответа от сервера.";
+                    errorMessage = "Error parsing response from server.";
                 }
 
                 await Application.Current.MainPage.DisplayAlert("Error", errorMessage, "ОК");
@@ -339,11 +339,14 @@ public partial class NewReceiptPage : ContentPage
     {
         string selectedStore = storePicker.SelectedItem as string;
     }
-    private void OnDateSelected(object sender, DateChangedEventArgs e)
-    {
-        DateTime selectedDate = e.NewDate;
-        //DisplayAlert("Selected", $"Selected date: {selectedDate.ToShortDateString()}", "OK");
-    }
+    //private void OnDateSelected(object sender, DateChangedEventArgs e)
+    //{
+    //    DateTime selectedDate = e.NewDate;
+    //}
+    //private void OnTimeSelected(object sender, TimeChangedEventArgs e)
+    //{
+    //    TimeSpan selectedTime = e.NewTime;
+    //}
     private async void OnAddSubcategoryClicked(object sender, EventArgs e)
     {
         await CreateSubcategoryAsync();

@@ -5,6 +5,7 @@
         <VerticalStackLayout x:Name="MainLayout" Padding="20" Spacing="10">
             <Button Text="Add new receipt" Clicked="OnNewReceptClicked"/>
             <Button Text="Reports" Clicked="OnReportsClicked"/>
+            
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>
