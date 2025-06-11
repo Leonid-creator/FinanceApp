@@ -7,7 +7,8 @@ namespace FinanceApp.Client.Api
         public const string BaseUrl = "http://localhost:5133/api/";
         //public const string BaseUrl = "https://financeapp-gvaxa5fravg5grf2.ukwest-01.azurewebsites.net/api/";
 #else
-        public const string BaseUrl = "https://financeapp-gvaxa5fravg5grf2.ukwest-01.azurewebsites.net/api/";
+        public const string BaseUrl = "http://localhost:5000/api/";
+        //public const string BaseUrl = "https://financeapp-gvaxa5fravg5grf2.ukwest-01.azurewebsites.net/api/";
 #endif
 
         public static string GetStores => $"{BaseUrl}stores/get-stores";

@@ -19,10 +19,19 @@ namespace FinanceApp.Infrastructure.Services
         }
         public async Task<Store> AddNewStoreAsync(StoreDto storeDto)
         {
-            Store newStore = new Store() { StoreName = storeDto.StoreDtoName };
-            newStore = await _unitOfWork.StoreRepository.AddEntityAsync(newStore);
-            await _unitOfWork.SaveChangesAsync();
-            return newStore;
+            Store existingStore = await GetStoreByNameAsync(storeDto.StoreDtoName);
+            if (existingStore == null)
+            {
+                Store newStore = new Store() { StoreName = storeDto.StoreDtoName };
+                newStore = await _unitOfWork.StoreRepository.AddEntityAsync(newStore);
+                await _unitOfWork.SaveChangesAsync();
+                return newStore;
+            }
+            else
+            {
+                throw new Exception("Store with the same name already exists.");
+            }
+
         }
         public async Task<Store> GetStoreByIdAsync(int storeId)
         {
